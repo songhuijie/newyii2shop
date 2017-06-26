@@ -5,6 +5,8 @@ use backend\models\Goods;
 use backend\models\GoodsCategory;
 use backend\models\Goodsimg;
 use frontend\models\CartForm;
+use frontend\models\Order;
+use frontend\models\OrderGoods;
 use yii\data\Pagination;
 use yii\web\Controller;
 use yii\web\Cookie;
@@ -77,6 +79,16 @@ class GoodsController extends Controller{
     }
     public function actionaAdd(){
         $cookie=new Cookie();
+    }
+    public function actionOrderList(){
+        if(\Yii::$app->user->isGuest){
+            return $this->redirect(['index/index']);
+        }else{
+            $member_id=\Yii::$app->user->id;
+            $orders=Order::findAll(['member_id'=>$member_id]);
+            $ordergoods=OrderGoods::findAll(['member_id'=>$member_id]);
+            return $this->render('order_list');
+        }
     }
 
 }

@@ -131,6 +131,7 @@ class Order extends \yii\db\ActiveRecord
         $carts=Cart::findAll(['member_id'=>$member_id]);
         foreach($carts as $cart){
             $order_goods->order_id=$cart->goods->sn;
+            $order_goods->member_id=$member_id;
             $order_goods->goods_id=$cart->goods_id;
             $order_goods->goods_name=$cart->goods->name;
             $order_goods->logo=$cart->goods->logo;

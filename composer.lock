@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "60db4254b34cd0b2aeeaf6eccaeaf402",
+    "content-hash": "dc827fecae360852b558262219001bb8",
     "packages": [
         {
             "name": "almasaeed2010/adminlte",
@@ -425,7 +425,7 @@
                 "region",
                 "yii2"
             ],
-            "time": "2017-02-22 07:06:12"
+            "time": "2017-02-22T07:06:12+00:00"
         },
         {
             "name": "crazyfd/yii2-qiniu",
@@ -699,16 +699,16 @@
         },
         {
             "name": "kartik-v/bootstrap-fileinput",
-            "version": "v4.4.1",
+            "version": "v4.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kartik-v/bootstrap-fileinput.git",
-                "reference": "aa4e1a520cef078922ed2c7c8e3e944d496388f6"
+                "reference": "28c89de2708f32814879241b6f112ee27b8f4ec8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://files.phpcomposer.com/files/kartik-v/bootstrap-fileinput/aa4e1a520cef078922ed2c7c8e3e944d496388f6.zip",
-                "reference": "aa4e1a520cef078922ed2c7c8e3e944d496388f6",
+                "url": "https://files.phpcomposer.com/files/kartik-v/bootstrap-fileinput/28c89de2708f32814879241b6f112ee27b8f4ec8.zip",
+                "reference": "28c89de2708f32814879241b6f112ee27b8f4ec8",
                 "shasum": ""
             },
             "type": "library",
@@ -748,7 +748,7 @@
                 "progress",
                 "upload"
             ],
-            "time": "2017-05-25T19:06:59+00:00"
+            "time": "2017-06-24T05:15:30+00:00"
         },
         {
             "name": "kartik-v/yii2-krajee-base",
@@ -856,12 +856,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/kartik-v/yii2-widget-fileinput.git",
-                "reference": "d2c8dcde1aa69ac0c4a0e3b3cfc0d79b3cc2a550"
+                "reference": "a4f363c9e5ba8a019cec6865ced20c3f8a09d3d8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://files.phpcomposer.com/files/kartik-v/yii2-widget-fileinput/d2c8dcde1aa69ac0c4a0e3b3cfc0d79b3cc2a550.zip",
-                "reference": "d2c8dcde1aa69ac0c4a0e3b3cfc0d79b3cc2a550",
+                "url": "https://files.phpcomposer.com/files/kartik-v/yii2-widget-fileinput/a4f363c9e5ba8a019cec6865ced20c3f8a09d3d8.zip",
+                "reference": "a4f363c9e5ba8a019cec6865ced20c3f8a09d3d8",
                 "shasum": ""
             },
             "require": {
@@ -903,7 +903,7 @@
                 "widget",
                 "yii2"
             ],
-            "time": "2017-05-25 20:12:30"
+            "time": "2017-06-24 19:36:32"
         },
         {
             "name": "kucha/ueditor",
@@ -1423,54 +1423,6 @@
                 "yii2"
             ],
             "time": "2016-12-20T13:26:02+00:00"
-        },
-        {
-            "name": "yiisoft/yii2-redis",
-            "version": "2.0.6",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/yiisoft/yii2-redis.git",
-                "reference": "5dc55d5187923219e9db86d149d56acf1f5a6ee8"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://files.phpcomposer.com/files/yiisoft/yii2-redis/5dc55d5187923219e9db86d149d56acf1f5a6ee8.zip",
-                "reference": "5dc55d5187923219e9db86d149d56acf1f5a6ee8",
-                "shasum": ""
-            },
-            "require": {
-                "yiisoft/yii2": "~2.0.11"
-            },
-            "type": "yii2-extension",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "yii\\redis\\": ""
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "BSD-3-Clause"
-            ],
-            "authors": [
-                {
-                    "name": "Carsten Brandt",
-                    "email": "mail@cebe.cc"
-                }
-            ],
-            "description": "Redis Cache, Session and ActiveRecord for the Yii framework",
-            "keywords": [
-                "active-record",
-                "cache",
-                "redis",
-                "session",
-                "yii2"
-            ],
-            "time": "2017-04-05T13:42:11+00:00"
         },
         {
             "name": "yiisoft/yii2-swiftmailer",
@@ -2445,16 +2397,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "5.7.20",
+            "version": "5.7.21",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "3cb94a5f8c07a03c8b7527ed7468a2926203f58b"
+                "reference": "3b91adfb64264ddec5a2dee9851f354aa66327db"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://files.phpcomposer.com/files/sebastianbergmann/phpunit/3cb94a5f8c07a03c8b7527ed7468a2926203f58b.zip",
-                "reference": "3cb94a5f8c07a03c8b7527ed7468a2926203f58b",
+                "url": "https://files.phpcomposer.com/files/sebastianbergmann/phpunit/3b91adfb64264ddec5a2dee9851f354aa66327db.zip",
+                "reference": "3b91adfb64264ddec5a2dee9851f354aa66327db",
                 "shasum": ""
             },
             "require": {
@@ -2523,7 +2475,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2017-05-22T07:42:55+00:00"
+            "time": "2017-06-21T08:11:54+00:00"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
