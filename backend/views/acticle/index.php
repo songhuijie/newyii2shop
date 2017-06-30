@@ -13,7 +13,7 @@ echo \yii\bootstrap\Html::a('添加分类', '#', [
     'header' => '<h4 class="modal-title">添加分类</h4>',
     'footer' => '<a href="#" class="btn btn-primary" data-dismiss="modal">关闭</a>',
 ]);
-$requestUrl = \yii\helpers\Url::toRoute('create');
+$requestUrl = \yii\helpers\Url::toRoute('edit');
 $js = <<<JS
 
 $.get('{$requestUrl}', {},function (data) {

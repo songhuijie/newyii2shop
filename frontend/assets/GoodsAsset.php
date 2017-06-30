@@ -26,7 +26,7 @@ class GoodsAsset extends AssetBundle
         'style/home.css',
     ];
     public $js = [
-        'js/header.js',
+//        'js/header.js',
         'js/index.js',
         'js/jqzoom-core.js',
         'js/list.js',

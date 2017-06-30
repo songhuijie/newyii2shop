@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use backend\component\SphinxClient;
 use backend\filters\UserFilter;
 use backend\models\ActicleCategory;
 use backend\models\Brand;
@@ -16,6 +17,7 @@ use xj\uploadify\UploadAction;
 use yii\data\Pagination;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
+use yii\web\NotFoundHttpException;
 use yii\web\UploadedFile;
 
 class GoodsController extends \yii\web\Controller
@@ -24,24 +26,46 @@ class GoodsController extends \yii\web\Controller
     {
         $search = new GoodsSearch();
         $query=Goods::find()->where(['>','status','-1']);
-        $search->search($query);
+//        $search->search($query);
+        if($keyword=\Yii::$app->request->get('keyword')){
+            $cl = new SphinxClient();
+            $cl->SetServer ( '127.0.0.1', 9312);
+            $cl->SetConnectTimeout ( 10 );
+            $cl->SetArrayResult ( true );
+            $cl->SetMatchMode ( SPH_MATCH_EXTENDED2);
+            $cl->SetLimits(0, 1000);
+            $res = $cl->Query($keyword, 'goods');
+            if(!isset($res['matches'])){
+                $query->where(['id'=>0]);
+            }else{
+                $ids=ArrayHelper::map($res['matches'],'id','id');
+                $query->where(['in','id',$ids]);
+            }
+        }
        $pagelation=new Pagination([
             'totalCount'=>$query->count(),
             'defaultPageSize'=>3,
         ]);
         $models=$query->offset($pagelation->offset)->limit($pagelation->limit)->all();
-        return $this->render('index',['models'=>$models,'pagelation'=>$pagelation,'search'=>$search]);
 
+            $keywords = array_keys($res['words']);
+            $options = array(
+                'before_match' => '<span style="color:red;">',
+                'after_match' => '</span>',
+                'chunk_separator' => '...',
+                'limit' => 80, //如果内容超过80个字符，就使用...隐藏多余的的内容
+            );
+//关键字高亮
+//        var_dump($models);exit;
+            foreach ($models as $index => $item) {
+                $name = $cl->BuildExcerpts([$item->name], 'goods', implode(',', $keywords), $options); //使用的索引不能写*，关键字可以使用空格、逗号等符号做分隔，放心，sphinx很智能，会给你拆分的
+                $models[$index]->name = $name[0];
+            }
+
+
+        return $this->render('index',['models'=>$models,'pagelation'=>$pagelation,'search'=>$search]);
  }
-//    public function actionIndex()
-//    {
-//        $searchModel =new Goods();
-//        $dataProvider = $searchModel->search(\Yii::$app->request->queryParams);
-//        return $this->render('index', [
-//            'searchModel' => $searchModel,
-//            'dataProvider' => $dataProvider,
-//        ]);
-//    }
+
     public function actionAdd()
     {
         $model=new Goods();
@@ -176,5 +200,16 @@ class GoodsController extends \yii\web\Controller
                 'only'=>['del','add','edit','index']
             ]
         ];
+    }
+    public function actionTest(){
+$cl = new SphinxClient();
+$cl->SetServer ( '127.0.0.1', 9312);
+$cl->SetConnectTimeout ( 10 );
+$cl->SetArrayResult ( true );
+$cl->SetMatchMode ( SPH_MATCH_EXTENDED2);
+$cl->SetLimits(0, 1000);
+$info = '小米电视';
+$res = $cl->Query($info, 'goods');//shopstore_search
+var_dump($res);
     }
 }

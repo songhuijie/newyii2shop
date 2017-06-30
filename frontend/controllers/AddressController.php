@@ -7,6 +7,9 @@ use yii\web\Controller;
 class AddressController extends Controller{
     public $layout='address.php';
     public function actionAdd(){
+        if(\Yii::$app->user->isGuest){
+            return $this->redirect(['member/login']);
+        }
         $model=new Address();
         $address=Address::find()->where(['member_id'=>\Yii::$app->user->identity->id])->all();
         $count=1;

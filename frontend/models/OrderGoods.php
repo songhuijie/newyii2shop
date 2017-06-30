@@ -2,6 +2,7 @@
 
 namespace frontend\models;
 
+use backend\models\Goods;
 use Yii;
 
 /**
@@ -54,5 +55,11 @@ class OrderGoods extends \yii\db\ActiveRecord
             'amount' => '数量',
             'total' => '小计',
         ];
+    }
+    public function getGoods(){
+        return $this->hasOne(Goods::className(),['id'=>'goods_id']);
+    }
+    public function getOrder(){
+        return $this->hasOne(Order::className(),['id'=>'order_id']);
     }
 }

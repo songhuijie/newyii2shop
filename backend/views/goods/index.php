@@ -5,7 +5,7 @@ $form = \yii\bootstrap\ActiveForm::begin([
     'action'=>\yii\helpers\Url::to(['goods/index']),
     'options'=>['class'=>'form-inline']
 ]);
-echo $form->field($search,'name')->textInput(['placeholder'=>'商品名'])->label(false);
+echo $form->field($search,'name')->textInput(['placeholder'=>'商品名','name'=>'keyword'])->label(false);
 echo $form->field($search,'sn')->textInput(['placeholder'=>'货号'])->label(false);
 echo $form->field($search,'minPrice')->textInput(['placeholder'=>'￥'])->label(false);
 echo $form->field($search,'maxPrice')->textInput(['placeholder'=>'￥'])->label('-');

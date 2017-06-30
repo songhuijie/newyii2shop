@@ -42,7 +42,7 @@ return [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
            //伪静态设置参数
-//            'suffix'=>'.html',
+            'suffix'=>'.html',
             'rules' => [
             ],
         ],

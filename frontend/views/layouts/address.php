@@ -69,16 +69,9 @@ use common\widgets\Alert;
     <!--头部结束-->
     <!-- 头部上半部分 start 包括 logo、搜索、用户中心和购物车结算 -->
     <div class="logo w1210">
-        <h1 class="fl"><a href="index.html"><?=Html::img(\Yii::getAlias('@web/images/logo.png'))?></h1>
+        <h1 class="fl"><?=Html::img(\Yii::getAlias('@web/images/logo.png'))?></h1>
         <!-- 头部搜索 start -->
-        <div class="search fl">
-            <div class="search_form">
-                <div class="form_left fl"></div>
-                <form action="" name="serarch" method="get" class="fl">
-                    <input type="text" class="txt" value="请输入商品关键字" /><input type="submit" class="btn" value="搜索" />
-                </form>
-                <div class="form_right fl"></div>
-            </div>
+       <?=\frontend\widgets\SearchWidgets::widget()?>
 
             <div style="clear:both;"></div>
 
@@ -162,28 +155,7 @@ use common\widgets\Alert;
                 <em></em>
             </div>
             <div class="cat_bd" style="display: none;">
-                <?php $model=\backend\models\GoodsCategory::find()->where(['parent_id'=>0])->all();
-
-                foreach ($model as $m){
-
-                    echo "<div class='cat item1'>";
-                    echo "<h3>".Html::a($m->name,['goods/list','id'=>$m->id])."<b></b></h3>";
-
-                    echo "<div class='cat_detail'>";
-//        var_dump($m->category->name);exit;
-                    foreach ($m->chlidren as $chlid){
-
-                        echo "<dl class='dl_1st'>";
-                        echo "<dt>".Html::a($chlid->name,['goods/list','id'=>$chlid->id])."</dt>";
-                        foreach($chlid->chlidren as $c){
-                            echo "<dd>".Html::a($c->name,['goods/list','id'=>$c->id])."</dd>";
-                        }
-                        echo "</dl>";
-                    }
-                    echo "</div>";
-                    echo '</div>';
-                }
-                ;?>
+                <?=\frontend\widgets\ListWidgets::widget()?>
 
                 <!--<div class="cat_bd">
                     <div class="cat item1">

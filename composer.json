@@ -29,7 +29,8 @@
         "dmstr/yii2-adminlte-asset": "2.*",
         "mdmsoft/yii2-admin": "~2.0",
         "chenkby/yii2-region": "dev-master",
-        "flc/alidayu": "^2.0"
+        "flc/alidayu": "^2.0",
+        "overtrue/wechat": "^3.3"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.0.0",

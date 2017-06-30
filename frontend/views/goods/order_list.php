@@ -1,3 +1,7 @@
+<?php
+use light\assets\LayerAsset;
+LayerAsset::register($this);
+?>
 <div style="clear:both;"></div>
 
 <!-- 页面主体 start -->
@@ -69,33 +73,22 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <td><a href="">852592106</a></td>
-                    <td><a href=""><img src="images/order1.jpg" alt="" /></a></td>
-                    <td>王超平</td>
-                    <td>￥35.00 货到付款</td>
-                    <td>2013-11-12 16:28:14</td>
-                    <td>已取消</td>
-                    <td><a href="">查看</a> | <a href="">删除</a></td>
+                <?php foreach($arr as $a):?>
+                <tr data-id="<?=$a->id?>">
+                    <td><a href="">
+                                <?=$a->order->id?>
+                            </a></td>
+                    <td><a href="">
+
+                                <?=\yii\helpers\Html::img('http://www.yii2shop.cc.cn/'.$a->logo)?>
+                            </a></td>
+                    <td><?=$a->order->name?></td>
+                    <td>￥<?=$a->total?>  <?=$a->order->payment_name?></td>
+                    <td><?=date('Y-d-m H:i:s',$a->order->create_time)?></td>
+                    <td><?=\frontend\models\Order::$statuoptins[$a->order->status]?></td>
+                    <td><a href="">查看</a> | <a href="javascript:void(0);" class="del" >删除</a></td>
                 </tr>
-                <tr>
-                    <td><a href="">852571653</a></td>
-                    <td><a href=""><img src="images/order2.jpg" alt="" /></a></td>
-                    <td>王超平</td>
-                    <td>￥35.00 在线支付</td>
-                    <td>2013-11-13 19:28:14</td>
-                    <td>已完成</td>
-                    <td><a href="">查看</a> | <a href="">删除</a></td>
-                </tr>
-                <tr>
-                    <td><a href="">471196680</a></td>
-                    <td><a href=""><img src="images/order2.jpg" alt="" /></a></td>
-                    <td>王超平</td>
-                    <td>￥169.00 货到付款</td>
-                    <td>2013-02-20 23:00:00</td>
-                    <td>已完成</td>
-                    <td><a href="">查看</a> | <a href="">删除</a></td>
-                </tr>
+                <?php endforeach;?>
                 </tbody>
             </table>
         </div>
@@ -103,3 +96,27 @@
     <!-- 右侧内容区域 end -->
 </div>
 <!-- 页面主体 end-->
+<?php
+/**
+ * @var $this \yii\web\View
+ * */
+$this->registerJs(new \yii\web\JsExpression(
+        <<<JS
+        $('.del').on('click',function(){
+            var id=$(this).closest('tr').attr('data-id')
+            var node=$(this).closest('tr');
+            $.ajax({
+       url: 'orderdel',
+       type: 'get',
+       data: {'id':id},
+       success: function (data) {
+          if(data.search){
+              layer.msg(data.msg);
+              node.remove();
+          }
+       }
+  })
+       });
+JS
+));
+?>

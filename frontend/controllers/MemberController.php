@@ -23,6 +23,7 @@ class MemberController extends \yii\web\Controller
     //注册页面 接收数据保存到数据库
     public function actionRegist(){
         $model=new Member();
+        $model->setScenario(Member::SCENARIO_REGISTER);
         if($model->load(\Yii::$app->request->post()) && $model->validate()){
             $model->repass($model->password);
             $model->save(false);
@@ -34,6 +35,7 @@ class MemberController extends \yii\web\Controller
     //登录成功的时候
     public function actionLogin(){
         $model=new Login();
+        $model->setScenario(Login::SCENARIO_LOGIN);
         if($model->load(\Yii::$app->request->post())&& $model->validate()){
             if($model->login($model)){
                 \Yii::$app->session->setFlash('success','登陆成功');
@@ -58,6 +60,7 @@ class MemberController extends \yii\web\Controller
                             $carts->goods_id=$k;
                             $carts->amount=$v;
                             $carts->member_id=$member_id;
+                            //开启事务
                             $carts->save();
                             $carts->isNewRecord = true;
                             $carts->id = null;
@@ -66,6 +69,7 @@ class MemberController extends \yii\web\Controller
                     //保存成功后 删除cookie cart的所有信息
                     $recookie=\Yii::$app->response->cookies;
                     $recookie->remove($cookie);
+                    return $this->redirect(['pay/mycar']);
                 }
 
                 return $this->redirect(['address/add']);

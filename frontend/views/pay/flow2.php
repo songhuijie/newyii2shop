@@ -111,7 +111,7 @@
                     foreach(\frontend\models\Order::$payment as $k=>$pay){
                         echo ($k==0)? '<tr class="cur">':'<tr>';
                         echo '<td>';
-                        echo "<input type='radio' name='payment' value='{$pay['payment_id']}' />{$pay['payment_name']}";
+                        echo ($k==0)?"<input type='radio' name='payment' value='{$pay['payment_id']}' checked/>{$pay['payment_name']}":"<input type='radio' name='payment' value='{$pay['payment_id']}' />{$pay['payment_name']}";
                         echo "<td>{$pay['info']}</td>";
                         echo '</td>';
                         echo '</tr>';
@@ -199,18 +199,17 @@
                     <td colspan="5">
                         <ul>
                             <li>
-                                <span><?=$count?> 件商品，总商品金额：</span>
-                                <em>￥<?php $zong=0;foreach ($goods as $good){  $zong+=$good['shop_price']*$good['amount'];
-                                    } echo $zong.'元';?></em>
+                                <span><?=$count?> 件商品，总商品金额：
+                                ￥<?php  echo $zong.'元';?></span>
                             </li>
                             <li>
-                                <span>运费：</span>
-                                <em class="yunfei"></em>
+                                <span>运费：
+                                <em class="yunfei"></em></span>
                             </li>
                             <li>
                                 <input type="hidden" name="total" id="zongjii" value=""/>
-                                <span>应付总额：</span>
-                                <em class="zongji"></em>
+                                <span>应付总额：
+                                <span class="zongji"></span></span>
                             </li>
                         </ul>
                     </td>

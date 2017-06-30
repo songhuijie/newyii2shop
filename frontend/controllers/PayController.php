@@ -47,17 +47,20 @@ class PayController extends Controller{
             $member_id=\Yii::$app->user->id;
             $goods_id=\Yii::$app->request->post('goods_id');
             $amount=\Yii::$app->request->post('amount');
-            $goods=Goods::findOne(['id'=>$goods_id]);
-//            var_dump($goods_id,$amount,$goods);exit;
-            if($goods){
-                $carts=new Cart();
-                $carts->goods_id=$goods->id;
-                $carts->amount=$amount;
-                $carts->member_id=$member_id;
-                $carts->save();
+            $cart=Cart::findOne(['goods_id'=>$goods_id,'member_id'=>$member_id]);
+            if($cart){
+                $cart->amount=$cart->amount+$amount;
+                $cart->save();
+            }else{
+                $goods=Goods::findOne(['id'=>$goods_id]);
+                if($goods){
+                    $carts=new Cart();
+                    $carts->goods_id=$goods->id;
+                    $carts->amount=$amount;
+                    $carts->member_id=$member_id;
+                    $carts->save();
+                }
             }
-
-
         }
 
         return $this->redirect(['pay/mycar']);

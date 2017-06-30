@@ -7,10 +7,12 @@ class Login extends Model{
     public $password;
     public $code;
     public $rememberMe;
+    const SCENARIO_LOGIN='login';
     public function rules()
     {
         return [
-            [['username','password','code'],'required','message'=>'不能为空'],//不能为空
+            [['username','password'],'required','message'=>'不能为空'],//不能为空
+            [['code'],'required','message'=>'不能为空','on'=>self::SCENARIO_LOGIN],
             [['rememberMe'],'safe'],//安全
         ];
     }

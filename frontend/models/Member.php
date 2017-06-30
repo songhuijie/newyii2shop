@@ -30,6 +30,7 @@ class Member extends \yii\db\ActiveRecord implements IdentityInterface
     public $repassword;
     public $smsCode;
     //验证码
+    const SCENARIO_REGISTER='register';
     public $code;
     public static function tableName()
     {
@@ -42,7 +43,8 @@ class Member extends \yii\db\ActiveRecord implements IdentityInterface
     public function rules()
     {
         return [
-            [['username','password','repassword', 'email', 'tel','smsCode'], 'required','message'=>'不能为空'],
+            [['username','password', 'email', 'tel'], 'required','message'=>'不能为空'],
+            [['repassword','smsCode'],'required','message'=>'不能为空','on'=>self::SCENARIO_REGISTER],
             [['last_login_time', 'last_login_ip', 'status', 'created_at', 'updated_at'], 'integer'],
             [['username'], 'string', 'max' => 50],
             [['auth_key'], 'string', 'max' => 32],
@@ -54,9 +56,9 @@ class Member extends \yii\db\ActiveRecord implements IdentityInterface
             [['password_hash', 'email'], 'string', 'max' => 100],
             [['tel'], 'string', 'max' => 11],
             [['password'], 'string', 'min' => 4,'tooShort'=>'密码长度最少4位'],
-            [['code'], 'captcha','message'=>'验证码不正确'],
-            [['smsCode'], 'validateSms'],
-            [['repassword'], 'compare', 'compareAttribute'=>'password','message'=>'2次密码输入不一致'],
+            [['code'], 'captcha','message'=>'验证码不正确','on'=>self::SCENARIO_REGISTER],
+            [['smsCode'], 'validateSms','on'=>self::SCENARIO_REGISTER],
+            [['repassword'], 'compare', 'compareAttribute'=>'password','message'=>'2次密码输入不一致','on'=>self::SCENARIO_REGISTER],
         ];
     }
     public function validateSms(){
