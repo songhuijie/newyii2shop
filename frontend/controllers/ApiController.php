@@ -11,10 +11,16 @@ use frontend\models\Cart;
 use frontend\models\Login;
 use frontend\models\Member;
 use frontend\models\Order;
+use frontend\models\OrderGoods;
 use frontend\models\RetwopasswordForm;
+use yii\db\Exception;
+use yii\helpers\ArrayHelper;
 use yii\web\Controller;
+use yii\web\Cookie;
+use yii\web\NotFoundHttpException;
 use yii\web\Request;
 use yii\web\Response;
+use yii\web\UploadedFile;
 
 class ApiController extends Controller{
     //关闭跨站攻击验证
@@ -59,11 +65,9 @@ class ApiController extends Controller{
                     \Yii::$app->user->login($member);
                     return ['success'=>true,'msg'=>'','data'=>$member->toArray()];
                 }
-                return ['success'=>false,'msg'=>'用户名或者密码错误'];
+                return ['success'=>false,'msg'=>'密码错误'];
             }
-
-
-            return ['success'=>false,'msg'=>'用户名或者密码错误'];
+            return ['success'=>false,'msg'=>'用户名错误'];
         }
         return ['success'=>false,'msg'=>'不是post请求'];
     }
@@ -214,11 +218,25 @@ class ApiController extends Controller{
     public function actionGetChlidren(){
         if(\Yii::$app->request->isGet){
             if($category_id=\Yii::$app->request->get('category_id')){
-                    $categories=GoodsCategory::find()->where(['parent_id'=>$category_id])->asArray()->all();
-                if($categories){
-                    return ['success'=>true,'data'=>$categories];
+
+                    $categories=GoodsCategory::findOne(['id'=>$category_id]);
+                if($categories==null){
+                    return ['success'=>false,'msg'=>'数据不存在'];
                 }
-                return ['success'=>false,'msg'=>'没有对应的数据'];
+                switch($categories->depth){
+                    case 2;
+                        $categories=GoodsCategory::findOne(['id'=>$category_id]);
+                    break;
+                    case 1;
+                        $ids = ArrayHelper::map($categories->children,'id','id');
+                        $categories=GoodsCategory::find()->Where(['in','id',$ids])->all();
+                    break;
+                    case 0;
+                        $ids = ArrayHelper::map($categories->leaves()->asArray()->all(),'id','id');
+                        $categories=GoodsCategory::find()->Where(['in','id',$ids])->all();
+                    break;
+                }
+                return ['success'=>true,'data'=>$categories];
             }
             return ['success'=>false,'msg'=>'数据不存在'];
         }
@@ -254,11 +272,22 @@ class ApiController extends Controller{
     //获取某分类下面的所有商品
     public function actionCategoryByGoods(){
         if($cate_id=\Yii::$app->request->get('cate_id')){
-            $goods=Goods::find()->where(['goods_category_id'=>$cate_id])->asArray()->all();
-            if($goods){
-                return ['success'=>true,'msg'=>'','data'=>$goods];
+            $goods=Goods::find();
+            $goodscategory=GoodsCategory::findOne(['id'=>$cate_id]);
+            switch($goodscategory->depth){
+                case 2;
+                    $goods=Goods::find()->where(['id'=>$cate_id])->asArray()->all();
+                break;
+                case 1;
+                    $ids=ArrayHelper::map($goodscategory->children,'id','id');
+                    $goods=Goods::find()->Where(['in','goods_category_id',$ids])->asArray()->all();
+                break;
+                case 0;
+                    $ids = ArrayHelper::map($goodscategory->leaves()->asArray()->all(),'id','id');
+                    $goods=Goods::find()->Where(['in','goods_category_id',$ids])->asArray()->all();
+                break;
             }
-            return ['success'=>false,'msg'=>'抱歉，没有此类商品'];
+                return ['success'=>true,'msg'=>'','data'=>$goods];
         }
         return ['success'=>false,'msg'=>'发送请求失败'];
     }
@@ -306,61 +335,121 @@ class ApiController extends Controller{
     //添加商品到购物车
     public function actionAddCart(){
         $request=\Yii::$app->request;
-        if(\Yii::$app->user->isGuest){
-            return ['success'=>false,'msg'=>'当前是游客登录'];
-        }
-        $member_id=\Yii::$app->user->id;
-        if($request->isGet){
-            $cart=new Cart();
-            $cart->goods_id=$request->get('goods_id');
-            $cart->amount=$request->get('amount');
-            $cart->member_id=$member_id;
-            if($cart->validate()){
-                $cart->save();
-                return ['success'=>true,'msg'=>'保存成功'];
+        if($request->isPost){
+            $goods_id=$request->post('goods_id');
+            $amount=$request->post('amount');
+//            var_dump($goods_id,$amount);exit;
+            if(\Yii::$app->user->isGuest){
+                $cookies=\Yii::$app->request->cookies;
+                $cookie=$cookies->get('cart');
+                if($cookie == null){
+                    $cart = [];
+                }else{
+                    $cart = unserialize($cookie->value); //$cart = [2=>10];
+                }
+                $cookie=\Yii::$app->response->cookies;
+                if(key_exists($goods_id,$cart)){
+                    $cart[$goods_id]+=$amount;
+                }else{
+                    $cart[$goods_id]=$amount;
+                }
+                $cookies=new Cookie([
+                    'name'=>'cart','value'=>serialize($cart)
+                ]);
+                $cookie->add($cookies);
+                return ['success'=>true,'msg'=>'添加到购物车成功','data'=>$cookie];
+            }else{
+                $member_id=\Yii::$app->user->id;
+                $cartone=Cart::findOne(['member_id'=>$member_id,'goods_id'=>$goods_id]);
+                if($cartone){
+                    $cartone->amount+=$amount;
+                    $cartone->update();
+                    return ['success'=>true,'msg'=>'保存成功'];
+                }else{
+                    $cart=new Cart();
+                    $cart->goods_id=$goods_id;
+                    $cart->amount=$amount;
+                    $cart->member_id=$member_id;
+                    if($cart->validate()){
+                        $cart->save();
+                        return ['success'=>true,'msg'=>'保存成功'];
+                    }
+                    return ['success'=>false,'msg'=>'验证失败'];
+                }
             }
-            return ['success'=>false,'msg'=>'验证失败'];
+
         }
-        return ['success'=>false,'msg'=>'非GET提交'];
+        return ['success'=>false,'msg'=>'非POST提交'];
     }
     //修改购物车商品数量
     public function actionEditCart(){
         $request=\Yii::$app->request;
-        if(\Yii::$app->user->isGuest){
-            return ['success'=>false,'msg'=>'当前是游客登录'];
-        }
-        $member_id=\Yii::$app->user->id;
-        if($request->isGet){
+        if($request->isPost){
+            $goods_id=$request->post('goods_id');
+            $amount=$request->post('amount');
+            if(\Yii::$app->user->isGuest){
+                $cookies=\Yii::$app->request->cookies;
+                $cookie=$cookies->get('cart');
+                if($cookie == null){
+                    $cart = [];
+                }else{
+                    $cart = unserialize($cookie->value); //$cart = [2=>10];
+                }
+                if($amount!=0){
+                    $cart[$goods_id] = $amount;
+                }else{
+                    if(key_exists($goods_id,$cart)) unset($cart[$goods_id]);
+                }
+                $cookie=\Yii::$app->response->cookies;
+                //上面拿到保存在cookie的数据 然后判断当前id为键 的商品存不存在于cookie中 如果存在就追加 如果不存在 就放到cookie2位数组中
+                //$array[3=>33]
+                $cookies=new Cookie([
+                    'name'=>'cart','value'=>serialize($cart)
+                ]);
+                $cookie->add($cookies);
+                return ['success'=>true,'msg'=>'修改成功','data'=>$cookie];
+            }else{
+                $member_id=\Yii::$app->user->id;
+                $cart=Cart::findOne(['member_id'=>$member_id,'goods_id'=>$goods_id]);
 
-            $id=$request->get('id');
-            $amount=$request->get('amount');
-            $cart=Cart::findOne(['member_id'=>$member_id,'id'=>$id]);
-            if($cart){
-            $cart->amount=$amount;
-            if($cart->update()){
-                return ['success'=>true,'msg'=>'修改成功'];
+                if($cart){
+                    $cart->amount=$amount;
+                    if($cart->update()){
+                        return ['success'=>true,'msg'=>'修改成功'];
+                    }
+                    return ['success'=>true,'msg'=>'修改失败'];
+                }
+                return ['success'=>false,'msg'=>'数据不存在'];
             }
-                return ['success'=>true,'msg'=>'修改失败'];
-            }
-            return ['success'=>false,'msg'=>'数据不存在'];
         }
-        return ['success'=>false,'msg'=>'非GET提交'];
+        return ['success'=>false,'msg'=>'非POST提交'];
     }
     //删除购物车某商品
     public function actionDelCart(){
         $request=\Yii::$app->request;
-        if(\Yii::$app->user->isGuest){
-            return ['success'=>false,'msg'=>'当前是游客登录'];
-        }
-        $member_id=\Yii::$app->user->id;
-        if($request->isGet){
 
-            $id=$request->get('id');
-            $cart=Cart::findOne(['id'=>$id,'member_id'=>$member_id]);
-            if($cart->delete()){
-                return ['success'=>true,'msg'=>'删除成功'];
+
+        if($request->isGet){
+            $member_id=\Yii::$app->user->id;
+            $goods_id=$request->get('goods_id');
+            if(\Yii::$app->user->isGuest){
+                $cookies=\Yii::$app->request->cookies;
+                $cookie=$cookies->get('cart');
+                if($cookie == null){
+                    $cart = [];
+                }else{
+                    $cart = unserialize($cookie->value); //$cart = [2=>10];
+                }
+                if(key_exists($goods_id,$cart)) unset($cart[$goods_id]);
+                return ['success'=>true,'msg'=>'删除成功','data'=>$cart];
+            }else{
+                $cart=Cart::findOne(['goods_id'=>$goods_id,'member_id'=>$member_id]);
+                if($cart->delete()){
+                    return ['success'=>true,'msg'=>'删除成功'];
+                }
+                return ['success'=>false,'msg'=>'删除失败'];
             }
-            return ['success'=>false,'msg'=>'删除失败'];
+
         }
         return ['success'=>false,'msg'=>'非GET提交'];
     }
@@ -368,7 +457,11 @@ class ApiController extends Controller{
     public function actionCleanCart(){
         $request=\Yii::$app->request;
         if(\Yii::$app->user->isGuest){
-            return ['success'=>false,'msg'=>'当前是游客登录'];
+            $cookies=\Yii::$app->request->cookies;
+            $cookie=$cookies->get('cart');
+            $recookie=\Yii::$app->response->cookies;
+            $recookie->remove($cookie);
+            return ['success'=>true,'msg'=>'清空购物车完成','data'=>$cookie];
         }
         $member_id=\Yii::$app->user->id;
         $carts=Cart::findAll(['member_id'=>$member_id]);
@@ -385,7 +478,14 @@ class ApiController extends Controller{
     public function actionCartAll(){
         $request=\Yii::$app->request;
         if(\Yii::$app->user->isGuest){
-            return ['success'=>false,'msg'=>'当前是游客登录'];
+            $cookies=\Yii::$app->request->cookies;
+            $cookie=$cookies->get('cart');
+            if($cookie == null){
+                $cart = [];
+            }else{
+                $cart = unserialize($cookie->value); //$cart = [2=>10];
+            }
+            return ['success'=>true,'msg'=>'','data'=>$cart];
         }
         $member_id=\Yii::$app->user->id;
             $carts=Cart::find()->where(['member_id'=>$member_id])->asArray()->all();
@@ -481,6 +581,163 @@ class ApiController extends Controller{
         if(\Yii::$app->user->isGuest){
             return ['success'=>false,'msg'=>'当前是游客登录'];
         }
+        //3个参数  delivery  payment  address_id  total计算后的值
+        if($request->isPost){
+            $member_id=\Yii::$app->user->id;
+            $delivery=$request->post('delivery');
+            $payment=$request->post('payment');
+            $address_id=$request->post('address_id');
+            $total=$request->post('total');
+            if(!$delivery || !$payment || !$address_id || !$total){
+                return ['success'=>false,'msg'=>'数据请求错误'];
+            }
+            $delivery_name='';
+            $delivery_price='';
+            $order=new Order();
+            foreach(Order::$delivery as $deli){
+                if($deli['delivery_id'] == $delivery){
 
+                    $delivery_name=$deli['delivery_name'];
+                    $delivery_price=$deli['delivery_price'];
+                }
+            }
+            $payment_name='';
+            foreach(Order::$payment as $pay){
+                if($pay['payment_id'] == $payment){
+                    $payment_name=$pay['payment_name'];
+                }
+            }
+            $address=Address::findOne(['id'=>$address_id,'member_id'=>$member_id]);
+            $order->member_id=$member_id;
+            $order->name=$address->name;
+            $order->province=$address->province;
+            $order->city=$address->city;
+            $order->area=$address->area;
+            $order->address=$address->address;
+            $order->tel=$address->tel;
+            $order->delivery_id=$request->post('delivery');
+            $order->delivery_name=$delivery_name;
+            $order->delivery_price=$delivery_price;
+            $order->payment_id=$request->post('payment');
+            $order->payment_name=$payment_name;
+            $order->total=$request->post('total');;
+            $order->status=1;
+            $order->trade_no='无';
+            $order->create_time=time();
+            $order->save();
+//            var_dump($order->save(false));exit;
+            $id=$order->id;
+            $member_id=\Yii::$app->user->id;
+            $beginTransaction=\Yii::$app->db->beginTransaction();
+            try{
+                $order_goods=new OrderGoods();
+                $carts=Cart::findAll(['member_id'=>$member_id]);
+                foreach($carts as $cart){
+
+                    $good=Goods::findOne(['id'=>$cart->goods_id]);
+                    if($good->stock<$cart->amount){
+                        throw new NotFoundHttpException($good->name.'商品库存不足');
+                    }
+                    $order_goods->order_id=$id;
+                    $order_goods->goods_id=$cart->goods_id;
+                    $order_goods->goods_name=$cart->goods->name;
+                    $order_goods->logo=$cart->goods->logo;
+                    $order_goods->price=$cart->goods->shop_price;
+                    $order_goods->amount=$cart->amount;
+                    $order_goods->total=$cart->amount*$cart->goods->shop_price;
+                    $order_goods->save(false);
+                    $order_goods->isNewRecord = true;
+                    $order_goods->id = null;
+                    $good=Goods::findOne(['id'=>$cart->goods_id]);
+                    $good->stock-=$cart->amount;
+                    $good->save();
+                    $cart->delete();
+                }
+                $beginTransaction->commit();//事务提交
+                return ['success'=>true,'msg'=>'提交订单成功'];
+            }catch (Exception $e){
+
+                $beginTransaction->rollBack();//事务回滚
+                return ['success'=>true,'msg'=>'失败'];
+            }
+        }
+        return ['success'=>false,'msg'=>'非GET提交'];
     }
+
+
+    //高级api  分页  验证码 发送短信  文件上传
+//验证码
+    public function actions(){
+        return [
+            'captcha'=>[
+                'class'=>'yii\captcha\CaptchaAction',
+                'maxLength'=>3,
+                'minLength'=>3,
+                'height' => 50,
+                'width' => 80,//这里可以设置宽和高，但是如果视图中有style，就会覆盖此处的宽和高
+            ]
+            //refresh=1  就是重置 图片的url地址 访问新生成地址就访问刷新的图片了
+        ];
+    }
+    //文件上传
+    public function actionUpload(){
+        $request=\Yii::$app->request;
+        if($request->isPost){
+            $img=UploadedFile::getInstanceByName('img');
+            if($img){
+                $filename='./upload/'.uniqid().'.'.$img->extension;
+                $res=$img->saveAs(\Yii::getAlias('@webroot').$filename,0);
+                if($res){
+                    return ['success'=>true,'msg'=>'保存成功','data'=>$filename];
+                }
+                return ['success'=>false,'msg'=>'保存失败'];
+            }
+            return ['success'=>false,'msg'=>'图片不正确'];
+        }
+        return ['success'=>false,'msg'=>'非POST提交'];
+    }
+//分页
+//发送短信
+    public function actionSendSms(){
+        if(\Yii::$app->request->isPost){
+            $tel=\Yii::$app->request->post('tel');
+            if(!preg_match('/^1[34578]\d{9}$/',$tel)){
+                return ['search'=>false, 'msg'=>'电话号码不正确',];
+            }
+            $code=rand(1000,9999);
+//        $yzm=\Yii::$app->sms->setNum($tel)->setSmsParam(['code' => $code])->setSend();
+            if($code){
+                \Yii::$app->cache->set('tel_'.$tel,$code,5*60);
+                return ['search'=>true, 'code'=>$code, 'msg'=>'发送短信成功',];
+            }else{
+                return ['search'=>false, 'msg'=>'发送失败',];
+            }
+        }
+        return ['search'=>false, 'msg'=>'非POST请求',];
+    }
+
+    public function actionGoodsList(){
+        $request=\Yii::$app->request;
+        if($request->isGet){
+            $per_page=$request->get('per_page',3);
+            $page=$request->get('page',1);
+            $keyword=$request->get('keyword');
+
+            $query=Goods::find();
+
+            if($keyword){
+                $query->andWhere(['like','name',$keyword]);
+            }
+            $total=$query->count();
+            $goods=$query->offset(($page-1)*$per_page)->limit($per_page)->asArray()->all();
+            return ['search'=>true,'msg'=>'','data'=>[
+                'per_page'=>$per_page,
+                'page'=>$page,
+                'total'=>$total,
+                'goods'=>$goods,
+            ]];
+        }
+        return ['search'=>false, 'msg'=>'非GET请求',];
+    }
+
 }

@@ -83,6 +83,7 @@ class Goods extends \yii\db\ActiveRecord
     public function getGoodscate(){
         return $this->hasOne(GoodsCategory::className(),['id'=>'goods_category_id']);
     }
+
     public function getBrand(){
         return $this->hasOne(Brand::className(),['id'=>'brand_id']);
     }

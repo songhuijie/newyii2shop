@@ -125,7 +125,7 @@ class Order extends \yii\db\ActiveRecord
         $this->payment_id=$post['payment'];
         $this->payment_name=$payment_name;
         $this->total=$post['total'];
-        $this->status=2;
+        $this->status=1;
         $this->trade_no='无';
         $this->create_time=time();
         $this->save();
@@ -158,6 +158,9 @@ class Order extends \yii\db\ActiveRecord
                     $order_goods->save(false);
                     $order_goods->isNewRecord = true;
                     $order_goods->id = null;
+                    $good=Goods::findOne(['id'=>$cart->goods_id]);
+                    $good->stock-=$cart->amount;
+                    $good->save();
                     $cart->delete();
                 }
                 $beginTransaction->commit();//事务提交

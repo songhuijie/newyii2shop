@@ -28,7 +28,6 @@ class PayController extends Controller{
             }else{
                 $cart = unserialize($cookie->value); //$cart = [2=>10];
             }
-
             $cookie=\Yii::$app->response->cookies;
             //上面拿到保存在cookie的数据 然后判断当前id为键 的商品存不存在于cookie中 如果存在就追加 如果不存在 就放到cookie2位数组中
             if(key_exists($goods->id,$cart)){
@@ -36,7 +35,6 @@ class PayController extends Controller{
             }else{
                 $cart[$goods_id]=$amount;
             }
-            //$array[3=>33]
             $cookies=new Cookie([
                     'name'=>'cart','value'=>serialize($cart)
                 ]);
@@ -200,6 +198,7 @@ class PayController extends Controller{
         $order=new Order();
         if(\Yii::$app->request->post()){
             $post=\Yii::$app->request->post();
+            //使用了事务
             if($order->reload($post)){
                 return $this->redirect(['pay/success']);
             }
