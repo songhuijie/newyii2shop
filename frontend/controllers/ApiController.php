@@ -234,7 +234,7 @@ class ApiController extends Controller{
                         $categories=GoodsCategory::findOne(['id'=>$category_id]);
                     break;
                     case 1;
-                        $ids = ArrayHelper::map($categories->children,'id','id');
+                        $ids = ArrayHelper::map($categories->chlidren,'id','id');
                         $categories=GoodsCategory::find()->Where(['in','id',$ids])->all();
                     break;
                     case 0;
@@ -285,7 +285,7 @@ class ApiController extends Controller{
                     $goods=Goods::find()->where(['id'=>$cate_id])->asArray()->all();
                 break;
                 case 1;
-                    $ids=ArrayHelper::map($goodscategory->children,'id','id');
+                    $ids=ArrayHelper::map($goodscategory->chlidren,'id','id');
                     $goods=Goods::find()->Where(['in','goods_category_id',$ids])->asArray()->all();
                 break;
                 case 0;
