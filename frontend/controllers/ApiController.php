@@ -34,20 +34,26 @@ class ApiController extends Controller{
     //会员  会员注册
     public function actionMemberRegister(){
         $request=\Yii::$app->request;
+
         if($request->isPost){
+
             $member=new Member();
+            $member->scenario=Member::SCENARIO_API_REGISTER;
+            $this->action;
             $member->username=$request->post('username');
             $member->password=$request->post('password');
             $member->email=$request->post('email');
             $member->tel=$request->post('tel');
+            $member->code=$request->post('code');
+            $member->smsCode=$request->post('smsCode');
             if($member->validate()){
                 $member->password_hash=\Yii::$app->security->generatePasswordHash( $member->password);
-                $member->save();
+                $member->save(false);
                 return ['success'=>true,'msg'=>'','data'=>$member->toArray()];
             }
             return ['success'=>false,'msg'=>$member->getErrors()];
         }
-        return ['success'=>false,'msg'=>'不是post请求'];
+        return ['success'=>false,'msg'=>'非POST提交'];
     }
     //会员  会员登录
     public function actionMemberLogin(){
@@ -704,10 +710,16 @@ class ApiController extends Controller{
             if(!preg_match('/^1[34578]\d{9}$/',$tel)){
                 return ['search'=>false, 'msg'=>'电话号码不正确',];
             }
+            $value=\Yii::$app->cache->get('tel_time'.$tel);
+            $s=time()-$value;
+            if($s<60){
+                return ['search'=>false, 'msg'=>'请'.(60-$s).'秒后再试',];
+            }
             $code=rand(1000,9999);
 //        $yzm=\Yii::$app->sms->setNum($tel)->setSmsParam(['code' => $code])->setSend();
             if($code){
                 \Yii::$app->cache->set('tel_'.$tel,$code,5*60);
+                \Yii::$app->cache->set('tel_time'.$tel,time(),5*60);
                 return ['search'=>true, 'code'=>$code, 'msg'=>'发送短信成功',];
             }else{
                 return ['search'=>false, 'msg'=>'发送失败',];

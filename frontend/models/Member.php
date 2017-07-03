@@ -31,6 +31,7 @@ class Member extends \yii\db\ActiveRecord implements IdentityInterface
     public $smsCode;
     //验证码
     const SCENARIO_REGISTER='register';
+    const SCENARIO_API_REGISTER='api_register';
     public $code;
     public static function tableName()
     {
@@ -57,7 +58,9 @@ class Member extends \yii\db\ActiveRecord implements IdentityInterface
             [['tel'], 'string', 'max' => 11],
             [['password'], 'string', 'min' => 4,'tooShort'=>'密码长度最少4位'],
             [['code'], 'captcha','message'=>'验证码不正确','on'=>self::SCENARIO_REGISTER],
+            [['code'], 'captcha','message'=>'验证码不正确','on'=>self::SCENARIO_API_REGISTER,'captchaAction'=>'api/captcha'],
             [['smsCode'], 'validateSms','on'=>self::SCENARIO_REGISTER],
+            [['smsCode'], 'validateSms','on'=>self::SCENARIO_API_REGISTER],
             [['repassword'], 'compare', 'compareAttribute'=>'password','message'=>'2次密码输入不一致','on'=>self::SCENARIO_REGISTER],
         ];
     }
